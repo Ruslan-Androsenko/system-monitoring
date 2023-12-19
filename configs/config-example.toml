@@ -1,0 +1,9 @@
+[server]
+host = "localhost"
+port = 8080
+
+[logger]
+level = "INFO"
+
+# Valid values
+# [FATAL, ERROR, WARN, INFO, DEBUG]
