@@ -25,4 +25,6 @@ func main() {
 
 	config := NewConfig()
 	logg = logger.New(config.Logger.Level)
+
+	logg.Info("system-monitoring is running...")
 }

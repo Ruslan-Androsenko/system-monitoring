@@ -59,5 +59,11 @@ jobs:
       - name: make build
         run: make build
 
+      - name: make run
+        run: make run
+
+      - name: make version
+        run: make version
+
       - name: make test
         run: make test
