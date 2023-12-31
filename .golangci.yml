@@ -13,7 +13,9 @@ linters-settings:
         allow:
           - $gostd
           - github.com/BurntSushi/toml
-          - github.com/Ruslan-Androsenko/system-monitoring/logger
+          - github.com/Ruslan-Androsenko/system-monitoring/api/proto
+          - github.com/Ruslan-Androsenko/system-monitoring/internal/logger
+          - github.com/Ruslan-Androsenko/system-monitoring/internal/server
 
 linters:
   disable-all: true

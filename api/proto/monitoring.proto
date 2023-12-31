@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+option go_package = "api/proto;proto";
+
+service SystemMonitoring {
+  rpc Metrics(MonitoringRequest) returns (stream MonitoringResponse){}
+}
+
+message MonitoringRequest {
+  uint32 every_seconds = 1;
+  uint32 avg_seconds = 2;
+}
+
+message MonitoringResponse {
+  double load_average = 1;
+  CpuLoad cpu_load = 2;
+  DiscLoad disk_load = 3;
+  DiscInfo disk_info = 4;
+}
+
+message CpuLoad {
+  double user_mode = 1;
+  double system_mode = 2;
+  double idle = 3;
+}
+
+
+message DiscLoad {
+  double transfer_per_second = 1;
+  double kbs_per_second = 2;
+}
+
+message DiscInfo {
+  double usage_size = 1;
+  double usage_inode = 2;
+}
