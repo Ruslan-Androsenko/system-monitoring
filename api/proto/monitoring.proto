@@ -14,8 +14,8 @@ message MonitoringRequest {
 message MonitoringResponse {
   double load_average = 1;
   CpuLoad cpu_load = 2;
-  DiscLoad disk_load = 3;
-  DiscInfo disk_info = 4;
+  DiskLoad disk_load = 3;
+  map<string, DiskInfo> disk_info = 4;
 }
 
 message CpuLoad {
@@ -24,13 +24,13 @@ message CpuLoad {
   double idle = 3;
 }
 
-
-message DiscLoad {
+message DiskLoad {
   double transfer_per_second = 1;
-  double kbs_per_second = 2;
+  double read_per_second = 2;
+  double write_per_second = 3;
 }
 
-message DiscInfo {
+message DiskInfo {
   double usage_size = 1;
   double usage_inode = 2;
 }

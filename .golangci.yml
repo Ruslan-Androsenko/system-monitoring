@@ -16,6 +16,7 @@ linters-settings:
           - github.com/Ruslan-Androsenko/system-monitoring/api/proto
           - github.com/Ruslan-Androsenko/system-monitoring/internal/logger
           - github.com/Ruslan-Androsenko/system-monitoring/internal/server
+          - github.com/Ruslan-Androsenko/system-monitoring/internal/tools
 
 linters:
   disable-all: true

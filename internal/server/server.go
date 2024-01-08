@@ -1,14 +1,20 @@
 package server
 
 import (
+	"context"
 	"net"
 	"time"
 
 	"github.com/Ruslan-Androsenko/system-monitoring/api/proto"
 	"github.com/Ruslan-Androsenko/system-monitoring/internal/logger"
+	"github.com/Ruslan-Androsenko/system-monitoring/internal/tools"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
+
+const countSeconds = 60
+
+var logg *logger.Logger
 
 type Server struct {
 	proto.UnimplementedSystemMonitoringServer
@@ -16,8 +22,6 @@ type Server struct {
 	grpc     *grpc.Server
 	listener net.Listener
 }
-
-var logg *logger.Logger
 
 func NewServer(config Conf, logger *logger.Logger) *Server {
 	logg = logger
@@ -49,35 +53,59 @@ func (s *Server) Stop() error {
 }
 
 func (s *Server) Metrics(req *proto.MonitoringRequest, stream proto.SystemMonitoring_MetricsServer) error {
-	cnt := 1
+	var (
+		cnt        int
+		metricsChs MetricsChannels
+	)
+
+	data := make([]*proto.MonitoringResponse, countSeconds)
+	errCh := make(chan error)
+	metricsChs.init()
+
+	avgSeconds := int(req.AvgSeconds)
+	everySeconds := int(req.EverySeconds)
+	ctx, cancel := context.WithCancel(context.Background())
+
+	defer func() {
+		cancel()
+		close(errCh)
+	}()
+
+	go func() {
+		err := <-errCh
+		if err != nil {
+			logg.Error(err.Error())
+			cancel()
+		}
+	}()
+
+	go tools.GetLoadAverage(ctx, metricsChs.loadAverageCh, errCh)
+	go tools.GetCPULoad(ctx, metricsChs.cpuLoadCh, errCh)
+	go tools.GetDiskLoad(ctx, metricsChs.diskLoadCh, errCh)
+	go tools.GetDiskInfo(ctx, metricsChs.diskInfoCh, errCh)
+
 	logg.Infof("request: %v", req)
 
-	for cnt < 100 {
-		cnt++
-		response := &proto.MonitoringResponse{
-			LoadAverage: 123.76,
-			CpuLoad: &proto.CpuLoad{
-				UserMode:   111.1,
-				SystemMode: 222.2,
-				Idle:       333.3,
-			},
-			DiskLoad: &proto.DiscLoad{
-				TransferPerSecond: 444.1,
-				KbsPerSecond:      555.2,
-			},
-			DiskInfo: &proto.DiscInfo{
-				UsageSize:  777.1,
-				UsageInode: 888.2,
-			},
+	for i := 0; ; i++ {
+		if i == countSeconds {
+			i = 0
 		}
 
-		if err := stream.Send(response); err != nil {
-			return err
+		if data[i] == nil {
+			data[i] = &proto.MonitoringResponse{}
 		}
 
-		logg.Infof("response: %v", response)
+		data[i] = fillDataSlice(data[i], metricsChs)
+
+		if cnt >= avgSeconds && cnt%everySeconds == 0 {
+			dataSlice := makeDataSlice(data, i, avgSeconds)
+			response := calculateAverageOfSlice(dataSlice)
+			if err := stream.Send(response); err != nil {
+				return err
+			}
+		}
+
 		time.Sleep(1 * time.Second)
+		cnt++
 	}
-
-	return nil
 }
