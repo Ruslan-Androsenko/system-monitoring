@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	Logger LoggerConf
-	Server server.Conf
+	Logger  LoggerConf
+	Metrics server.MetricsConf
+	Server  server.Conf
 }
 
 type LoggerConf struct {

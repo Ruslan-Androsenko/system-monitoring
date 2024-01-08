@@ -38,7 +38,7 @@ func main() {
 
 	config := NewConfig()
 	logg = logger.New(config.Logger.Level)
-	grpcServer := server.NewServer(config.Server, logg)
+	grpcServer := server.NewServer(config.Server, config.Metrics, logg)
 
 	go func() {
 		<-ctx.Done()

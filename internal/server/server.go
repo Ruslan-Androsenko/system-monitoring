@@ -7,14 +7,16 @@ import (
 
 	"github.com/Ruslan-Androsenko/system-monitoring/api/proto"
 	"github.com/Ruslan-Androsenko/system-monitoring/internal/logger"
-	"github.com/Ruslan-Androsenko/system-monitoring/internal/tools"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
 
 const countSeconds = 60
 
-var logg *logger.Logger
+var (
+	logg        *logger.Logger
+	metricsConf MetricsConf
+)
 
 type Server struct {
 	proto.UnimplementedSystemMonitoringServer
@@ -23,10 +25,11 @@ type Server struct {
 	listener net.Listener
 }
 
-func NewServer(config Conf, logger *logger.Logger) *Server {
+func NewServer(server Conf, metrics MetricsConf, logger *logger.Logger) *Server {
 	logg = logger
+	metricsConf = metrics
 
-	listener, err := net.Listen("tcp", config.GetAddress())
+	listener, err := net.Listen("tcp", server.GetAddress())
 	if err != nil {
 		logg.Fatalf("Failed to listen: %v", err)
 	}
@@ -59,30 +62,25 @@ func (s *Server) Metrics(req *proto.MonitoringRequest, stream proto.SystemMonito
 	)
 
 	data := make([]*proto.MonitoringResponse, countSeconds)
-	errCh := make(chan error)
-	metricsChs.init()
-
 	avgSeconds := int(req.AvgSeconds)
 	everySeconds := int(req.EverySeconds)
 	ctx, cancel := context.WithCancel(context.Background())
 
+	metricsChs.init()
+	metricsChs.run(ctx)
+
 	defer func() {
 		cancel()
-		close(errCh)
+		close(metricsChs.errCh)
 	}()
 
 	go func() {
-		err := <-errCh
+		err := <-metricsChs.errCh
 		if err != nil {
 			logg.Error(err.Error())
 			cancel()
 		}
 	}()
-
-	go tools.GetLoadAverage(ctx, metricsChs.loadAverageCh, errCh)
-	go tools.GetCPULoad(ctx, metricsChs.cpuLoadCh, errCh)
-	go tools.GetDiskLoad(ctx, metricsChs.diskLoadCh, errCh)
-	go tools.GetDiskInfo(ctx, metricsChs.diskInfoCh, errCh)
 
 	logg.Infof("request: %v", req)
 
@@ -100,7 +98,9 @@ func (s *Server) Metrics(req *proto.MonitoringRequest, stream proto.SystemMonito
 		if cnt >= avgSeconds && cnt%everySeconds == 0 {
 			dataSlice := makeDataSlice(data, i, avgSeconds)
 			response := calculateAverageOfSlice(dataSlice)
+
 			if err := stream.Send(response); err != nil {
+				logg.Errorf("Can not send data to stream, response: %v. Error: %v", response, err)
 				return err
 			}
 		}

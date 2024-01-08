@@ -14,39 +14,49 @@ func fillDataSlice(dataItem *proto.MonitoringResponse, metricsChs MetricsChannel
 		wg sync.WaitGroup
 	)
 
-	wg.Add(4)
+	if metricsConf.LoadAverage {
+		go func() {
+			defer mu.Unlock()
+			defer wg.Done()
 
-	go func() {
-		defer mu.Unlock()
-		defer wg.Done()
+			wg.Add(1)
+			mu.Lock()
+			dataItem.LoadAverage = <-metricsChs.loadAverageCh
+		}()
+	}
 
-		mu.Lock()
-		dataItem.LoadAverage = <-metricsChs.loadAverageCh
-	}()
+	if metricsConf.CPULoad {
+		go func() {
+			defer mu.Unlock()
+			defer wg.Done()
 
-	go func() {
-		defer mu.Unlock()
-		defer wg.Done()
+			wg.Add(1)
+			mu.Lock()
+			dataItem.CpuLoad = <-metricsChs.cpuLoadCh
+		}()
+	}
 
-		mu.Lock()
-		dataItem.CpuLoad = <-metricsChs.cpuLoadCh
-	}()
+	if metricsConf.DiskLoad {
+		go func() {
+			defer mu.Unlock()
+			defer wg.Done()
 
-	go func() {
-		defer mu.Unlock()
-		defer wg.Done()
+			wg.Add(1)
+			mu.Lock()
+			dataItem.DiskLoad = <-metricsChs.diskLoadCh
+		}()
+	}
 
-		mu.Lock()
-		dataItem.DiskLoad = <-metricsChs.diskLoadCh
-	}()
+	if metricsConf.DiskInfo {
+		go func() {
+			defer mu.Unlock()
+			defer wg.Done()
 
-	go func() {
-		defer mu.Unlock()
-		defer wg.Done()
-
-		mu.Lock()
-		dataItem.DiskInfo = <-metricsChs.diskInfoCh
-	}()
+			wg.Add(1)
+			mu.Lock()
+			dataItem.DiskInfo = <-metricsChs.diskInfoCh
+		}()
+	}
 
 	wg.Wait()
 
@@ -86,34 +96,27 @@ func makeDataSlice(data []*proto.MonitoringResponse, currentIndex, avgSeconds in
 // Расчет усредненных значений перед отправкой данных клиенту.
 func calculateAverageOfSlice(data []*proto.MonitoringResponse) *proto.MonitoringResponse {
 	var (
+		length      = float64(len(data))
 		loadAverage float64
-		cpuLoad     proto.CpuLoad
-		diskLoad    proto.DiskLoad
-		diskInfo    map[string]*proto.DiskInfo
+		cpuLoad     = &proto.CpuLoad{}
+		diskLoad    = &proto.DiskLoad{}
+		diskInfo    = make(map[string]*proto.DiskInfo)
 	)
 
 	for _, item := range data {
-		loadAverage += item.LoadAverage
+		if metricsConf.LoadAverage {
+			loadAverage += item.LoadAverage
+		}
 
-		// Суммируем данные о загрузке процессора
-		cpuLoad.UserMode += item.CpuLoad.UserMode
-		cpuLoad.SystemMode += item.CpuLoad.SystemMode
-		cpuLoad.Idle += item.CpuLoad.Idle
-
-		// Суммируем данные о загрузке диске
-		diskLoad.TransferPerSecond += item.DiskLoad.TransferPerSecond
-		diskLoad.ReadPerSecond += item.DiskLoad.ReadPerSecond
-		diskLoad.WritePerSecond += item.DiskLoad.WritePerSecond
-
+		cpuLoad = sumCPULoad(cpuLoad, item.CpuLoad)
+		diskLoad = sumDiskLoad(diskLoad, item.DiskLoad)
 		diskInfo = sumDiskInfo(diskInfo, item.DiskInfo)
 	}
 
-	length := float64(len(data))
-
 	return &proto.MonitoringResponse{
 		LoadAverage: roundNumber(loadAverage / length),
-		CpuLoad:     makeAverageCPULoad(&cpuLoad, length),
-		DiskLoad:    makeAverageDiskLoad(&diskLoad, length),
+		CpuLoad:     makeAverageCPULoad(cpuLoad, length),
+		DiskLoad:    makeAverageDiskLoad(diskLoad, length),
 		DiskInfo:    makeAverageDiskInfo(diskInfo, length),
 	}
 }
@@ -123,8 +126,25 @@ func roundNumber(number float64) float64 {
 	return math.Round(number*100.0) / 100.0
 }
 
+// Суммирование данных по загрузке процессора.
+func sumCPULoad(cpuLoad, itemCPULoad *proto.CpuLoad) *proto.CpuLoad {
+	if !metricsConf.CPULoad {
+		return nil
+	}
+
+	cpuLoad.UserMode += itemCPULoad.UserMode
+	cpuLoad.SystemMode += itemCPULoad.SystemMode
+	cpuLoad.Idle += itemCPULoad.Idle
+
+	return cpuLoad
+}
+
 // Расчет усредненных данных по загрузке процессора.
 func makeAverageCPULoad(cpuLoad *proto.CpuLoad, length float64) *proto.CpuLoad {
+	if !metricsConf.CPULoad {
+		return nil
+	}
+
 	return &proto.CpuLoad{
 		UserMode:   roundNumber(cpuLoad.UserMode / length),
 		SystemMode: roundNumber(cpuLoad.SystemMode / length),
@@ -132,8 +152,25 @@ func makeAverageCPULoad(cpuLoad *proto.CpuLoad, length float64) *proto.CpuLoad {
 	}
 }
 
+// Суммирование данных по загрузке диска.
+func sumDiskLoad(diskLoad, itemDiskLoad *proto.DiskLoad) *proto.DiskLoad {
+	if !metricsConf.DiskLoad {
+		return nil
+	}
+
+	diskLoad.TransferPerSecond += itemDiskLoad.TransferPerSecond
+	diskLoad.ReadPerSecond += itemDiskLoad.ReadPerSecond
+	diskLoad.WritePerSecond += itemDiskLoad.WritePerSecond
+
+	return diskLoad
+}
+
 // Расчет усредненных данных по загрузке диска.
 func makeAverageDiskLoad(diskLoad *proto.DiskLoad, length float64) *proto.DiskLoad {
+	if !metricsConf.DiskLoad {
+		return nil
+	}
+
 	return &proto.DiskLoad{
 		TransferPerSecond: roundNumber(diskLoad.TransferPerSecond / length),
 		ReadPerSecond:     roundNumber(diskLoad.ReadPerSecond / length),
@@ -143,8 +180,8 @@ func makeAverageDiskLoad(diskLoad *proto.DiskLoad, length float64) *proto.DiskLo
 
 // Суммирование данных использования диска.
 func sumDiskInfo(diskInfo, itemDiskInfo map[string]*proto.DiskInfo) map[string]*proto.DiskInfo {
-	if diskInfo == nil {
-		diskInfo = make(map[string]*proto.DiskInfo)
+	if !metricsConf.DiskInfo {
+		return nil
 	}
 
 	for fileSystem, item := range itemDiskInfo {
@@ -164,6 +201,10 @@ func sumDiskInfo(diskInfo, itemDiskInfo map[string]*proto.DiskInfo) map[string]*
 
 // Расчет усредненных данных использования диска.
 func makeAverageDiskInfo(diskInfo map[string]*proto.DiskInfo, length float64) map[string]*proto.DiskInfo {
+	if !metricsConf.DiskInfo {
+		return nil
+	}
+
 	for fileSystem, item := range diskInfo {
 		diskInfo[fileSystem].UsageSize = roundNumber(item.UsageSize / length)
 		diskInfo[fileSystem].UsageInode = roundNumber(item.UsageInode / length)
