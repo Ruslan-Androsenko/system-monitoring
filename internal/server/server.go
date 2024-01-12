@@ -7,6 +7,7 @@ import (
 
 	"github.com/Ruslan-Androsenko/system-monitoring/api/proto"
 	"github.com/Ruslan-Androsenko/system-monitoring/internal/logger"
+	"github.com/Ruslan-Androsenko/system-monitoring/internal/tools"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 )
@@ -65,9 +66,10 @@ func (s *Server) Metrics(req *proto.MonitoringRequest, stream proto.SystemMonito
 	avgSeconds := int(req.AvgSeconds)
 	everySeconds := int(req.EverySeconds)
 	ctx, cancel := context.WithCancel(context.Background())
+	ctxValue := context.WithValue(ctx, tools.SudoPassCtxKey, &req.SudoPassword)
 
 	metricsChs.init()
-	metricsChs.run(ctx)
+	metricsChs.run(ctxValue)
 
 	defer func() {
 		cancel()

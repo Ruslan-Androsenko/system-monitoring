@@ -8,11 +8,12 @@ import (
 )
 
 type MetricsChannels struct {
-	errCh         chan error
-	loadAverageCh chan float64
-	cpuLoadCh     chan *proto.CpuLoad
-	diskLoadCh    chan *proto.DiskLoad
-	diskInfoCh    chan map[string]*proto.DiskInfo
+	errCh          chan error
+	loadAverageCh  chan float64
+	cpuLoadCh      chan *proto.CpuLoad
+	diskLoadCh     chan *proto.DiskLoad
+	diskInfoCh     chan map[string]*proto.DiskInfo
+	networkStatsCh chan *proto.NetworkStats
 }
 
 // Инициализируем каналы для получения метрик системы.
@@ -22,6 +23,7 @@ func (m *MetricsChannels) init() {
 	m.cpuLoadCh = make(chan *proto.CpuLoad)
 	m.diskLoadCh = make(chan *proto.DiskLoad)
 	m.diskInfoCh = make(chan map[string]*proto.DiskInfo)
+	m.networkStatsCh = make(chan *proto.NetworkStats)
 }
 
 // Запускаем сбор необходимых метрик системы.
@@ -40,5 +42,9 @@ func (m *MetricsChannels) run(ctx context.Context) {
 
 	if metricsConf.DiskInfo {
 		go tools.GetDiskInfo(ctx, m.diskInfoCh, m.errCh)
+	}
+
+	if metricsConf.NetworkStats {
+		go tools.GetNetworkStats(ctx, m.networkStatsCh, m.errCh)
 	}
 }

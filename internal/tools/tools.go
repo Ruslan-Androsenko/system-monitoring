@@ -26,7 +26,7 @@ func execute(name string, args []string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to start cmd, error: %w", err)
 	}
 
-	buffer := make([]byte, 1024)
+	buffer := make([]byte, bufferSize)
 	bytes, err := pipe.Read(buffer)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read pipe out, error: %w", err)
@@ -65,7 +65,7 @@ func executeWithPipe(mainName, secondName string, mainArgs, secondArgs []string)
 		return nil, fmt.Errorf("failed to start second cmd, error: %w", err)
 	}
 
-	buffer := make([]byte, 1024)
+	buffer := make([]byte, bufferSize)
 	bytes, err := pipeSecond.Read(buffer)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read second pipe out, error: %w", err)
@@ -255,6 +255,132 @@ func getUsedPercents(diskArgs []string) (map[string]float64, error) {
 		}
 
 		res[fileSystem] += availableQuantity
+	}
+
+	return res, nil
+}
+
+// GetNetworkStats Получить информацию по сетевым соединениям.
+func GetNetworkStats(ctx context.Context, resCh chan<- *proto.NetworkStats, errCh chan<- error) {
+	defer close(resCh)
+
+	var sudoPassword string
+	sudoPasswordValue := ctx.Value(SudoPassCtxKey)
+	if value, ok := sudoPasswordValue.(string); ok {
+		sudoPassword = value
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+
+		default:
+			listenerSockets, err := getListenerSockets(sudoPassword)
+			if err != nil {
+				errCh <- err
+				return
+			}
+
+			tcpConnections, err := getCounterConnections(ssTCPArgs)
+			if err != nil {
+				errCh <- err
+				return
+			}
+
+			udpConnections, err := getCounterConnections(ssUDPArgs)
+			if err != nil {
+				errCh <- err
+				return
+			}
+
+			resCh <- &proto.NetworkStats{
+				ListenerSocket: listenerSockets,
+				CounterConnections: &proto.CounterConnections{
+					Tcp: tcpConnections,
+					Udp: udpConnections,
+				},
+			}
+		}
+	}
+}
+
+// Получить список прослушиваемых сокетов.
+func getListenerSockets(sudoPassword string) ([]*proto.ListenerSocket, error) {
+	var (
+		buffer []byte
+		err    error
+	)
+
+	if len(sudoPassword) > 0 {
+		buffer, err = executeWithPipe(echoCmd, sudoCmd, []string{sudoPassword}, netstatWithSudoArgs)
+	} else {
+		buffer, err = execute(netstatCmd, netstatArgs)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	re := regexp.MustCompile("\n")
+	items := re.Split(string(buffer), -1)
+
+	var (
+		user, pid, port   uint32
+		command, protocol string
+		res               = make([]*proto.ListenerSocket, 0, len(items)-2)
+	)
+
+	re = regexp.MustCompile(netstatPattern)
+
+	for i := 2; i < len(items); i++ {
+		item := strings.ReplaceAll(items[i], " - ", " 0/hide ")
+		line := re.ReplaceAllString(item, "$1 $2 $3 $4 $5")
+
+		_, err = fmt.Sscanf(line, "%s %d %d %d %s", &protocol, &port, &user, &pid, &command)
+		if errors.Is(err, io.EOF) {
+			continue
+		} else if err != nil {
+			return nil, err
+		}
+
+		res = append(res, &proto.ListenerSocket{
+			User:     user,
+			Pid:      pid,
+			Command:  command,
+			Protocol: protocol,
+			Port:     port,
+		})
+	}
+
+	return res, nil
+}
+
+// Получить количество TCP|UDP соединений, находящихся в разных состояниях.
+func getCounterConnections(args []string) (map[string]uint32, error) {
+	res := make(map[string]uint32)
+	buffer, err := execute(ssCmd, args)
+	if err != nil {
+		return nil, err
+	}
+
+	re := regexp.MustCompile("\n")
+	items := re.Split(string(buffer), -1)
+
+	var state string
+	re = regexp.MustCompile(ssPattern)
+
+	for i := 1; i < len(items); i++ {
+		line := re.ReplaceAllString(items[i], "$1")
+
+		_, err = fmt.Sscanf(line, "%s", &state)
+		if errors.Is(err, io.EOF) {
+			continue
+		} else if err != nil {
+			return nil, err
+		}
+
+		res[state]++
 	}
 
 	return res, nil

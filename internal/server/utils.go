@@ -58,6 +58,17 @@ func fillDataSlice(dataItem *proto.MonitoringResponse, metricsChs MetricsChannel
 		}()
 	}
 
+	if metricsConf.NetworkStats {
+		go func() {
+			defer mu.Unlock()
+			defer wg.Done()
+
+			wg.Add(1)
+			mu.Lock()
+			dataItem.NetworkStats = <-metricsChs.networkStatsCh
+		}()
+	}
+
 	wg.Wait()
 
 	return dataItem
@@ -96,11 +107,18 @@ func makeDataSlice(data []*proto.MonitoringResponse, currentIndex, avgSeconds in
 // Расчет усредненных значений перед отправкой данных клиенту.
 func calculateAverageOfSlice(data []*proto.MonitoringResponse) *proto.MonitoringResponse {
 	var (
-		length      = float64(len(data))
-		loadAverage float64
-		cpuLoad     = &proto.CpuLoad{}
-		diskLoad    = &proto.DiskLoad{}
-		diskInfo    = make(map[string]*proto.DiskInfo)
+		lastIndex    = len(data) - 1
+		length       = float64(len(data))
+		loadAverage  float64
+		cpuLoad      = &proto.CpuLoad{}
+		diskLoad     = &proto.DiskLoad{}
+		diskInfo     = make(map[string]*proto.DiskInfo)
+		networkStats = &proto.NetworkStats{
+			CounterConnections: &proto.CounterConnections{
+				Tcp: make(map[string]uint32),
+				Udp: make(map[string]uint32),
+			},
+		}
 	)
 
 	for _, item := range data {
@@ -111,13 +129,21 @@ func calculateAverageOfSlice(data []*proto.MonitoringResponse) *proto.Monitoring
 		cpuLoad = sumCPULoad(cpuLoad, item.CpuLoad)
 		diskLoad = sumDiskLoad(diskLoad, item.DiskLoad)
 		diskInfo = sumDiskInfo(diskInfo, item.DiskInfo)
+		networkStats = sumNetworkConnections(networkStats, item.NetworkStats)
+	}
+
+	if lastIndex >= 0 {
+		// Получаем последний элемент со списком прослушиваемых сокетов
+		lastItem := data[lastIndex]
+		networkStats.ListenerSocket = lastItem.GetNetworkStats().GetListenerSocket()
 	}
 
 	return &proto.MonitoringResponse{
-		LoadAverage: roundNumber(loadAverage / length),
-		CpuLoad:     makeAverageCPULoad(cpuLoad, length),
-		DiskLoad:    makeAverageDiskLoad(diskLoad, length),
-		DiskInfo:    makeAverageDiskInfo(diskInfo, length),
+		LoadAverage:  roundNumber(loadAverage / length),
+		CpuLoad:      makeAverageCPULoad(cpuLoad, length),
+		DiskLoad:     makeAverageDiskLoad(diskLoad, length),
+		DiskInfo:     makeAverageDiskInfo(diskInfo, length),
+		NetworkStats: makeAverageNetworkConnections(networkStats, uint32(length)),
 	}
 }
 
@@ -211,4 +237,38 @@ func makeAverageDiskInfo(diskInfo map[string]*proto.DiskInfo, length float64) ma
 	}
 
 	return diskInfo
+}
+
+// Суммирование количества сетевых соединений.
+func sumNetworkConnections(networkStats, iteNetworkStats *proto.NetworkStats) *proto.NetworkStats {
+	if !metricsConf.NetworkStats {
+		return nil
+	}
+
+	for state, counter := range iteNetworkStats.CounterConnections.Tcp {
+		networkStats.CounterConnections.Tcp[state] += counter
+	}
+
+	for state, counter := range iteNetworkStats.CounterConnections.Udp {
+		networkStats.CounterConnections.Udp[state] += counter
+	}
+
+	return networkStats
+}
+
+// Расчет усредненных данных по количеству сетевых соединений.
+func makeAverageNetworkConnections(networkStats *proto.NetworkStats, length uint32) *proto.NetworkStats {
+	if !metricsConf.NetworkStats {
+		return nil
+	}
+
+	for state, counter := range networkStats.CounterConnections.Tcp {
+		networkStats.CounterConnections.Tcp[state] = counter / length
+	}
+
+	for state, counter := range networkStats.CounterConnections.Udp {
+		networkStats.CounterConnections.Udp[state] = counter / length
+	}
+
+	return networkStats
 }

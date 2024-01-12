@@ -15,8 +15,9 @@ func (s Conf) GetAddress() string {
 }
 
 type MetricsConf struct {
-	LoadAverage bool `toml:"load_average"`
-	CPULoad     bool `toml:"cpu_load"`
-	DiskLoad    bool `toml:"disk_load"`
-	DiskInfo    bool `toml:"disk_info"`
+	LoadAverage  bool `toml:"load_average"`
+	CPULoad      bool `toml:"cpu_load"`
+	DiskLoad     bool `toml:"disk_load"`
+	DiskInfo     bool `toml:"disk_info"`
+	NetworkStats bool `toml:"network_stats"`
 }
