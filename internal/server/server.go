@@ -84,8 +84,6 @@ func (s *Server) Metrics(req *proto.MonitoringRequest, stream proto.SystemMonito
 		}
 	}()
 
-	logg.Infof("request: %v", req)
-
 	for i := 0; ; i++ {
 		if i == countSeconds {
 			i = 0
