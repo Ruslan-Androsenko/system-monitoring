@@ -1,4 +1,5 @@
 BIN := "./bin/system-monitoring"
+CONTAINER_NAME="system-monitoring"
 DOCKER_IMG="system-monitoring:develop"
 LINTER_PATH=/tmp/bin
 LINTER_BIN=/tmp/bin/golangci-lint
@@ -12,6 +13,12 @@ build:
 run: build
 	$(BIN) -config ./configs/config.toml -port 8090
 
+server: build
+	$(BIN) -config ./configs/config-client.toml
+
+client: build
+	$(BIN) -config ./configs/config-client.toml -messages 100 grpc-client
+
 build-img:
 	docker build \
 		--build-arg=LDFLAGS="$(LDFLAGS)" \
@@ -19,13 +26,13 @@ build-img:
 		-f build/Dockerfile .
 
 run-img: build-img
-	docker run $(DOCKER_IMG)
+	docker run --rm --name=$(CONTAINER_NAME) $(DOCKER_IMG)
 
 version: build
 	$(BIN) version
 
 test:
-	go test -race ./internal/logger/...
+	go test -race -count 100 ./internal/logger/...
 
 install-lint-deps:
 	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(LINTER_PATH) v1.55.2

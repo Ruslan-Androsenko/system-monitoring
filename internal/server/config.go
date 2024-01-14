@@ -6,8 +6,9 @@ import (
 )
 
 type Conf struct {
-	Host string
-	Port int
+	Host     string
+	Port     int
+	Override bool
 }
 
 func (s Conf) GetAddress() string {

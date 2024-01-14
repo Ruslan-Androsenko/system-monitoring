@@ -132,7 +132,7 @@ func calculateAverageOfSlice(data []*proto.MonitoringResponse) *proto.Monitoring
 		networkStats = sumNetworkConnections(networkStats, item.NetworkStats)
 	}
 
-	if lastIndex >= 0 {
+	if lastIndex >= 0 && metricsConf.NetworkStats {
 		// Получаем последний элемент со списком прослушиваемых сокетов
 		lastItem := data[lastIndex]
 		networkStats.ListenerSocket = lastItem.GetNetworkStats().GetListenerSocket()

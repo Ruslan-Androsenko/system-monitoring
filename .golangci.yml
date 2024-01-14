@@ -15,6 +15,7 @@ linters-settings:
           - github.com/BurntSushi/toml
           - github.com/stretchr/testify/suite
           - github.com/Ruslan-Androsenko/system-monitoring/api/proto
+          - github.com/Ruslan-Androsenko/system-monitoring/internal/client
           - github.com/Ruslan-Androsenko/system-monitoring/internal/logger
           - github.com/Ruslan-Androsenko/system-monitoring/internal/server
           - github.com/Ruslan-Androsenko/system-monitoring/internal/tools

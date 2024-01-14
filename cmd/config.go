@@ -24,14 +24,16 @@ func NewConfig() Config {
 		log.Fatalf("Can not read config file, err: %v \n", err)
 	}
 
-	// Если через флаг передан хост, то используем его
-	if config.Server.Host != serverHost {
-		config.Server.Host = serverHost
-	}
+	if config.Server.Override {
+		// Если через флаг передан хост, то используем его
+		if config.Server.Host != serverHost {
+			config.Server.Host = serverHost
+		}
 
-	// Если через флаг передан порт, то используем его
-	if config.Server.Port != serverPort {
-		config.Server.Port = serverPort
+		// Если через флаг передан порт, то используем его
+		if config.Server.Port != serverPort {
+			config.Server.Port = serverPort
+		}
 	}
 
 	return config

@@ -25,7 +25,7 @@ FROM alpine:3.9
 
 LABEL ORGANIZATION="OTUS Online Education"
 LABEL SERVICE="system-monitoring"
-LABEL MAINTAINERS="student@otus.ru"
+LABEL MAINTAINERS="ruslan.developer.89@gmail.com"
 
 ENV BIN_FILE "/opt/system-monitoring/app"
 COPY --from=build ${BIN_FILE} ${BIN_FILE}

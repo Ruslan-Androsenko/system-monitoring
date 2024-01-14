@@ -2,7 +2,6 @@ package client
 
 import (
 	"context"
-	"time"
 
 	"github.com/Ruslan-Androsenko/system-monitoring/api/proto"
 	"github.com/Ruslan-Androsenko/system-monitoring/internal/logger"
@@ -11,7 +10,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func InitGrpcClient(ctx context.Context, config server.Conf, logg *logger.Logger) {
+func InitGrpcClient(ctx context.Context, config server.Conf, logg *logger.Logger, messages int) {
 	conn, err := grpc.Dial(config.GetAddress(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		logg.Fatalf("Can not open connection: %v", err)
@@ -33,7 +32,9 @@ func InitGrpcClient(ctx context.Context, config server.Conf, logg *logger.Logger
 		logg.Fatalf("Can not creating stream: %v", err)
 	}
 
-	for i := 0; i < 100; i++ {
+	logg.Info("Grpc client is receiving... \n")
+
+	for i := 0; i < messages; i++ {
 		select {
 		case <-ctx.Done():
 			return
@@ -44,8 +45,7 @@ func InitGrpcClient(ctx context.Context, config server.Conf, logg *logger.Logger
 				logg.Fatalf("Can not receiving: %v", err)
 			}
 
-			logg.Infof("response: %v", response)
-			time.Sleep(1 * time.Second)
+			logg.Infof("response: %v \n", response)
 		}
 	}
 }
