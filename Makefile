@@ -32,7 +32,7 @@ version: build
 	$(BIN) version
 
 test:
-	go test -race -count 100 ./internal/logger/...
+	go test -race -v -count 100 ./internal/...
 
 install-lint-deps:
 	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(LINTER_PATH) v1.55.2

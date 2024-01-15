@@ -7,71 +7,68 @@ import (
 	"github.com/Ruslan-Androsenko/system-monitoring/api/proto"
 )
 
-// Заполнение массива данных полученными значениями из различных каналов.
-func fillDataSlice(dataItem *proto.MonitoringResponse, metricsChs MetricsChannels) *proto.MonitoringResponse {
-	var (
-		mu sync.Mutex
-		wg sync.WaitGroup
-	)
+// Заполнение элемента массива данных полученными значениями из различных каналов.
+func fillDataItem(item *proto.MonitoringResponse, chs MetricsChannels, mu MetricsMutex) *proto.MonitoringResponse {
+	var wg sync.WaitGroup
 
 	if metricsConf.LoadAverage {
 		go func() {
-			defer mu.Unlock()
+			defer mu.loadAverage.Unlock()
 			defer wg.Done()
 
 			wg.Add(1)
-			mu.Lock()
-			dataItem.LoadAverage = <-metricsChs.loadAverageCh
+			mu.loadAverage.Lock()
+			item.LoadAverage = <-chs.loadAverageCh
 		}()
 	}
 
 	if metricsConf.CPULoad {
 		go func() {
-			defer mu.Unlock()
+			defer mu.cpuLoad.Unlock()
 			defer wg.Done()
 
 			wg.Add(1)
-			mu.Lock()
-			dataItem.CpuLoad = <-metricsChs.cpuLoadCh
+			mu.cpuLoad.Lock()
+			item.CpuLoad = <-chs.cpuLoadCh
 		}()
 	}
 
 	if metricsConf.DiskLoad {
 		go func() {
-			defer mu.Unlock()
+			defer mu.diskLoad.Unlock()
 			defer wg.Done()
 
 			wg.Add(1)
-			mu.Lock()
-			dataItem.DiskLoad = <-metricsChs.diskLoadCh
+			mu.diskLoad.Lock()
+			item.DiskLoad = <-chs.diskLoadCh
 		}()
 	}
 
 	if metricsConf.DiskInfo {
 		go func() {
-			defer mu.Unlock()
+			defer mu.diskInfo.Unlock()
 			defer wg.Done()
 
 			wg.Add(1)
-			mu.Lock()
-			dataItem.DiskInfo = <-metricsChs.diskInfoCh
+			mu.diskInfo.Lock()
+			item.DiskInfo = <-chs.diskInfoCh
 		}()
 	}
 
 	if metricsConf.NetworkStats {
 		go func() {
-			defer mu.Unlock()
+			defer mu.networkStats.Unlock()
 			defer wg.Done()
 
 			wg.Add(1)
-			mu.Lock()
-			dataItem.NetworkStats = <-metricsChs.networkStatsCh
+			mu.networkStats.Lock()
+			item.NetworkStats = <-chs.networkStatsCh
 		}()
 	}
 
 	wg.Wait()
 
-	return dataItem
+	return item
 }
 
 // Сформировать массив данных из необходимого диапазона, для дальнейших расчетов усредненных значений.

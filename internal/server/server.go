@@ -60,6 +60,7 @@ func (s *Server) Metrics(req *proto.MonitoringRequest, stream proto.SystemMonito
 	var (
 		cnt        int
 		metricsChs MetricsChannels
+		mu         MetricsMutex
 	)
 
 	data := make([]*proto.MonitoringResponse, countSeconds)
@@ -70,6 +71,7 @@ func (s *Server) Metrics(req *proto.MonitoringRequest, stream proto.SystemMonito
 
 	metricsChs.init()
 	metricsChs.run(ctxValue)
+	mu.init()
 
 	defer func() {
 		cancel()
@@ -93,7 +95,7 @@ func (s *Server) Metrics(req *proto.MonitoringRequest, stream proto.SystemMonito
 			data[i] = &proto.MonitoringResponse{}
 		}
 
-		data[i] = fillDataSlice(data[i], metricsChs)
+		data[i] = fillDataItem(data[i], metricsChs, mu)
 
 		if cnt >= avgSeconds && cnt%everySeconds == 0 {
 			dataSlice := makeDataSlice(data, i, avgSeconds)

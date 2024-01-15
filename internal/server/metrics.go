@@ -2,10 +2,28 @@ package server
 
 import (
 	"context"
+	"sync"
 
 	"github.com/Ruslan-Androsenko/system-monitoring/api/proto"
 	"github.com/Ruslan-Androsenko/system-monitoring/internal/tools"
 )
+
+type MetricsMutex struct {
+	loadAverage  *sync.RWMutex
+	cpuLoad      *sync.RWMutex
+	diskLoad     *sync.RWMutex
+	diskInfo     *sync.RWMutex
+	networkStats *sync.RWMutex
+}
+
+// Инициализируем мьютексы для получения и записи метрик системы.
+func (m *MetricsMutex) init() {
+	m.loadAverage = &sync.RWMutex{}
+	m.cpuLoad = &sync.RWMutex{}
+	m.diskLoad = &sync.RWMutex{}
+	m.diskInfo = &sync.RWMutex{}
+	m.networkStats = &sync.RWMutex{}
+}
 
 type MetricsChannels struct {
 	errCh          chan error
