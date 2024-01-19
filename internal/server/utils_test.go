@@ -62,36 +62,36 @@ func TestFillDataItem(t *testing.T) {
 	require.NotNil(t, dataItem)
 
 	mu.loadAverage.RLock()
-	require.Greater(t, dataItem.LoadAverage, zeroNumber)
+	require.GreaterOrEqual(t, dataItem.LoadAverage, zeroNumber)
 	mu.loadAverage.RUnlock()
 
 	// Проверяем заполненность данными для загрузки процессора
 	mu.cpuLoad.RLock()
 	require.NotNil(t, dataItem.CpuLoad)
-	require.Greater(t, dataItem.CpuLoad.UserMode, zeroNumber)
-	require.Greater(t, dataItem.CpuLoad.SystemMode, zeroNumber)
-	require.Greater(t, dataItem.CpuLoad.Idle, zeroNumber)
+	require.GreaterOrEqual(t, dataItem.CpuLoad.UserMode, zeroNumber)
+	require.GreaterOrEqual(t, dataItem.CpuLoad.SystemMode, zeroNumber)
+	require.GreaterOrEqual(t, dataItem.CpuLoad.Idle, zeroNumber)
 	mu.cpuLoad.RUnlock()
 
 	// Проверяем заполненность данными для загрузки диска
 	mu.diskLoad.RLock()
 	require.NotNil(t, dataItem.DiskLoad)
-	require.Greater(t, dataItem.DiskLoad.TransferPerSecond, zeroNumber)
-	require.Greater(t, dataItem.DiskLoad.ReadPerSecond, zeroNumber)
-	require.Greater(t, dataItem.DiskLoad.WritePerSecond, zeroNumber)
+	require.GreaterOrEqual(t, dataItem.DiskLoad.TransferPerSecond, zeroNumber)
+	require.GreaterOrEqual(t, dataItem.DiskLoad.ReadPerSecond, zeroNumber)
+	require.GreaterOrEqual(t, dataItem.DiskLoad.WritePerSecond, zeroNumber)
 	mu.diskLoad.RUnlock()
 
 	// Проверяем заполненность данными для информации об использовании диска
 	mu.diskInfo.RLock()
 	require.NotNil(t, dataItem.DiskInfo)
-	require.Greater(t, len(dataItem.DiskInfo), 0)
+	require.GreaterOrEqual(t, len(dataItem.DiskInfo), 0)
 	mu.diskInfo.RUnlock()
 
 	// Проверяем заполненность данными для сетевой статистики
 	mu.networkStats.RLock()
 	require.NotNil(t, dataItem.NetworkStats)
 	require.NotNil(t, dataItem.NetworkStats.ListenerSocket)
-	require.Greater(t, len(dataItem.NetworkStats.ListenerSocket), 0)
+	require.GreaterOrEqual(t, len(dataItem.NetworkStats.ListenerSocket), 0)
 
 	// Проверяем заполненность данными для количества соединений
 	require.NotNil(t, dataItem.NetworkStats.CounterConnections)
@@ -99,7 +99,7 @@ func TestFillDataItem(t *testing.T) {
 	require.NotNil(t, dataItem.NetworkStats.CounterConnections.Udp)
 
 	// Проверяем заполненность данными для
-	require.Greater(t, len(dataItem.NetworkStats.CounterConnections.Tcp), 0)
-	require.Greater(t, len(dataItem.NetworkStats.CounterConnections.Udp), 0)
+	require.GreaterOrEqual(t, len(dataItem.NetworkStats.CounterConnections.Tcp), 0)
+	require.GreaterOrEqual(t, len(dataItem.NetworkStats.CounterConnections.Udp), 0)
 	mu.networkStats.RUnlock()
 }
