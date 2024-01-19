@@ -17,8 +17,9 @@ func fillDataItem(item *proto.MonitoringResponse, chs MetricsChannels, mu Metric
 			defer wg.Done()
 
 			wg.Add(1)
+			loadAverageValue := <-chs.loadAverageCh
 			mu.loadAverage.Lock()
-			item.LoadAverage = <-chs.loadAverageCh
+			item.LoadAverage = loadAverageValue
 		}()
 	}
 
@@ -28,8 +29,9 @@ func fillDataItem(item *proto.MonitoringResponse, chs MetricsChannels, mu Metric
 			defer wg.Done()
 
 			wg.Add(1)
+			cpuLoadValue := <-chs.cpuLoadCh
 			mu.cpuLoad.Lock()
-			item.CpuLoad = <-chs.cpuLoadCh
+			item.CpuLoad = cpuLoadValue
 		}()
 	}
 
@@ -39,8 +41,9 @@ func fillDataItem(item *proto.MonitoringResponse, chs MetricsChannels, mu Metric
 			defer wg.Done()
 
 			wg.Add(1)
+			diskLoadValue := <-chs.diskLoadCh
 			mu.diskLoad.Lock()
-			item.DiskLoad = <-chs.diskLoadCh
+			item.DiskLoad = diskLoadValue
 		}()
 	}
 
@@ -50,8 +53,9 @@ func fillDataItem(item *proto.MonitoringResponse, chs MetricsChannels, mu Metric
 			defer wg.Done()
 
 			wg.Add(1)
+			diskInfoValue := <-chs.diskInfoCh
 			mu.diskInfo.Lock()
-			item.DiskInfo = <-chs.diskInfoCh
+			item.DiskInfo = diskInfoValue
 		}()
 	}
 
@@ -61,8 +65,9 @@ func fillDataItem(item *proto.MonitoringResponse, chs MetricsChannels, mu Metric
 			defer wg.Done()
 
 			wg.Add(1)
+			networkStatsValue := <-chs.networkStatsCh
 			mu.networkStats.Lock()
-			item.NetworkStats = <-chs.networkStatsCh
+			item.NetworkStats = networkStatsValue
 		}()
 	}
 
