@@ -10,7 +10,9 @@ import (
 )
 
 const (
-	zeroNumber = 0.0
+	avgSeconds   = 15
+	everySeconds = 5
+	zeroNumber   = 0.0
 )
 
 func init() {
@@ -115,4 +117,46 @@ func TestFillDataItem(t *testing.T) {
 	time.Sleep(time.Second)
 	require.NotNil(t, dataItem)
 	dataItemTest(t, &mu, dataItem)
+}
+
+func TestMakeDataSlice(t *testing.T) {
+	var (
+		metricsChs MetricsChannels
+		mu         MetricsMutex
+	)
+
+	metricsChs.init()
+	initMetricsChannelsTest(t, metricsChs)
+
+	mu.init()
+	initMetricsMutexesTest(t, mu)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	metricsChs.run(ctx)
+
+	defer func() {
+		cancel()
+		close(metricsChs.errCh)
+	}()
+
+	data := make([]*proto.MonitoringResponse, countSeconds)
+
+	for i := 0; i < countSeconds; i++ {
+		if data[i] == nil {
+			data[i] = &proto.MonitoringResponse{}
+		}
+
+		data[i] = fillDataItem(data[i], metricsChs, mu)
+		require.NotNil(t, data[i])
+
+		if i >= avgSeconds && i%everySeconds == 0 {
+			dataSlice := makeDataSlice(data, i, avgSeconds)
+			require.NotNil(t, dataSlice)
+			require.Equal(t, avgSeconds, len(dataSlice))
+
+			response := calculateAverageOfSlice(dataSlice)
+			require.NotNil(t, response)
+			dataItemTest(t, &mu, response)
+		}
+	}
 }

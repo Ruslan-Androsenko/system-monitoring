@@ -67,7 +67,7 @@ jobs:
         run: ss -ua
 
       - name: Unit tests
-        run: go test -race -v -count=100 -timeout=2m ./internal/...
+        run: go test -race -v -count=100 -timeout=20m ./internal/...
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
