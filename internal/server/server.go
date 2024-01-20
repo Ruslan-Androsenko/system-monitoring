@@ -107,7 +107,7 @@ func (s *Server) Metrics(req *proto.MonitoringRequest, stream proto.SystemMonito
 			}
 		}
 
-		time.Sleep(1 * time.Second)
+		time.Sleep(time.Second)
 		cnt++
 	}
 }

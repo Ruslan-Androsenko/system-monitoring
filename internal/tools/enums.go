@@ -9,6 +9,7 @@ func (c contextKey) String() string {
 
 const (
 	bufferSize     = 2048
+	zeroNumber     = 0.0
 	SudoPassCtxKey = contextKey("sudoPassword")
 
 	echoCmd     = "echo"
