@@ -50,47 +50,57 @@ func initMetricsMutexesTest(t *testing.T, mu MetricsMutex) {
 func dataItemTest(t *testing.T, mu *MetricsMutex, dataItem *proto.MonitoringResponse) {
 	t.Helper()
 
-	mu.loadAverage.RLock()
-	require.GreaterOrEqual(t, dataItem.LoadAverage, zeroNumber)
-	mu.loadAverage.RUnlock()
+	if metricsConf.LoadAverage {
+		mu.loadAverage.RLock()
+		require.GreaterOrEqual(t, dataItem.LoadAverage, zeroNumber)
+		mu.loadAverage.RUnlock()
+	}
 
 	// Проверяем заполненность данными для загрузки процессора
-	mu.cpuLoad.RLock()
-	require.NotNil(t, dataItem.CpuLoad)
-	require.GreaterOrEqual(t, dataItem.CpuLoad.UserMode, zeroNumber)
-	require.GreaterOrEqual(t, dataItem.CpuLoad.SystemMode, zeroNumber)
-	require.GreaterOrEqual(t, dataItem.CpuLoad.Idle, zeroNumber)
-	mu.cpuLoad.RUnlock()
+	if metricsConf.CPULoad {
+		mu.cpuLoad.RLock()
+		require.NotNil(t, dataItem.CpuLoad)
+		require.GreaterOrEqual(t, dataItem.CpuLoad.UserMode, zeroNumber)
+		require.GreaterOrEqual(t, dataItem.CpuLoad.SystemMode, zeroNumber)
+		require.GreaterOrEqual(t, dataItem.CpuLoad.Idle, zeroNumber)
+		mu.cpuLoad.RUnlock()
+	}
 
 	// Проверяем заполненность данными для загрузки диска
-	mu.diskLoad.RLock()
-	require.NotNil(t, dataItem.DiskLoad)
-	require.GreaterOrEqual(t, dataItem.DiskLoad.TransferPerSecond, zeroNumber)
-	require.GreaterOrEqual(t, dataItem.DiskLoad.ReadPerSecond, zeroNumber)
-	require.GreaterOrEqual(t, dataItem.DiskLoad.WritePerSecond, zeroNumber)
-	mu.diskLoad.RUnlock()
+	if metricsConf.DiskLoad {
+		mu.diskLoad.RLock()
+		require.NotNil(t, dataItem.DiskLoad)
+		require.GreaterOrEqual(t, dataItem.DiskLoad.TransferPerSecond, zeroNumber)
+		require.GreaterOrEqual(t, dataItem.DiskLoad.ReadPerSecond, zeroNumber)
+		require.GreaterOrEqual(t, dataItem.DiskLoad.WritePerSecond, zeroNumber)
+		mu.diskLoad.RUnlock()
+	}
 
 	// Проверяем заполненность данными для информации об использовании диска
-	mu.diskInfo.RLock()
-	require.NotNil(t, dataItem.DiskInfo)
-	require.GreaterOrEqual(t, len(dataItem.DiskInfo), 0)
-	mu.diskInfo.RUnlock()
+	if metricsConf.DiskInfo {
+		mu.diskInfo.RLock()
+		require.NotNil(t, dataItem.DiskInfo)
+		require.GreaterOrEqual(t, len(dataItem.DiskInfo), 0)
+		mu.diskInfo.RUnlock()
+	}
 
 	// Проверяем заполненность данными для сетевой статистики
-	mu.networkStats.RLock()
-	require.NotNil(t, dataItem.NetworkStats)
-	require.NotNil(t, dataItem.NetworkStats.ListenerSocket)
-	require.GreaterOrEqual(t, len(dataItem.NetworkStats.ListenerSocket), 0)
+	if metricsConf.NetworkStats {
+		mu.networkStats.RLock()
+		require.NotNil(t, dataItem.NetworkStats)
+		require.NotNil(t, dataItem.NetworkStats.ListenerSocket)
+		require.GreaterOrEqual(t, len(dataItem.NetworkStats.ListenerSocket), 0)
 
-	// Проверяем заполненность данными для количества соединений
-	require.NotNil(t, dataItem.NetworkStats.CounterConnections)
-	require.NotNil(t, dataItem.NetworkStats.CounterConnections.Tcp)
-	require.NotNil(t, dataItem.NetworkStats.CounterConnections.Udp)
+		// Проверяем заполненность данными для количества соединений
+		require.NotNil(t, dataItem.NetworkStats.CounterConnections)
+		require.NotNil(t, dataItem.NetworkStats.CounterConnections.Tcp)
+		require.NotNil(t, dataItem.NetworkStats.CounterConnections.Udp)
 
-	// Проверяем заполненность данными для
-	require.GreaterOrEqual(t, len(dataItem.NetworkStats.CounterConnections.Tcp), 0)
-	require.GreaterOrEqual(t, len(dataItem.NetworkStats.CounterConnections.Udp), 0)
-	mu.networkStats.RUnlock()
+		// Проверяем заполненность данными для
+		require.GreaterOrEqual(t, len(dataItem.NetworkStats.CounterConnections.Tcp), 0)
+		require.GreaterOrEqual(t, len(dataItem.NetworkStats.CounterConnections.Udp), 0)
+		mu.networkStats.RUnlock()
+	}
 }
 
 func TestFillDataItem(t *testing.T) {
