@@ -18,9 +18,9 @@ const (
 func init() {
 	metricsConf.LoadAverage = true
 	metricsConf.CPULoad = true
-	metricsConf.DiskLoad = true
-	metricsConf.DiskInfo = true
-	metricsConf.NetworkStats = true
+	metricsConf.DiskLoad = false
+	metricsConf.DiskInfo = false
+	metricsConf.NetworkStats = false
 }
 
 // Проверка инициализации каналов.

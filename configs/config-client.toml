@@ -12,6 +12,6 @@ level = "INFO"
 [metrics]
 load_average = true
 cpu_load = true
-disk_load = true
+disk_load = false
 disk_info = false
 network_stats = false

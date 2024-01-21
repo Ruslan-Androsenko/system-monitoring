@@ -24,7 +24,7 @@ const (
 	percentWithComaPattern   = `.*?(\d+),(\d+).*?`
 	percentWithPointPattern  = `.*?(\d+)\.(\d+).*?`
 	loadAveragePatternFormat = ".*average:%s,.*"
-	cpuLoadPatternFormat     = "%sus,%ssy,.*ni,%sid.*"
+	cpuLoadPatternFormat     = "%suser,%ssys,%sidle.*"
 	diskLoadPatternFormat    = ".*sda%s%s%s"
 	diskFreePattern          = `.*?\s(\w+)\s.*?(\d+)%\s.*`
 	netstatPattern           = `^(\w+)\s+.*:(\d+)\s+.*\s+(\d+)\s+\d+\s+(\d+)\/(.*)$`
@@ -32,16 +32,16 @@ const (
 )
 
 var (
-	topArgs             = []string{"-b", "-n1"}
+	topArgs             = []string{"-n1"}
 	iostatArgs          = []string{"-d", "-k"}
-	diskSizeArgs        = []string{"-mT"}
-	diskInodesArgs      = []string{"-iT"}
+	diskSizeArgs        = []string{"-m"}
+	diskInodesArgs      = []string{"-i"}
 	netstatArgs         = []string{"-lntupe"}
 	netstatWithSudoArgs = []string{"-S", netstatCmd, "-lntupe"}
 	ssTCPArgs           = []string{"-ta"}
 	ssUDPArgs           = []string{"-ua"}
 
-	loadAverageArgs = []string{"average"}
-	cpuLoadArgs     = []string{"Cpu"}
+	loadAverageArgs = []string{"'Load Avg'"}
+	cpuLoadArgs     = []string{"'CPU usage'"}
 	diskLoadArgs    = []string{"sda"}
 )
