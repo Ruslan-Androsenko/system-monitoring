@@ -21,14 +21,18 @@ const (
 	netstatCmd  = "netstat"
 	ssCmd       = "ss"
 
-	percentWithComaPattern   = `.*?(\d+),(\d+).*?`
-	percentWithPointPattern  = `.*?(\d+)\.(\d+).*?`
-	loadAveragePatternFormat = ".*average:%s,.*"
-	cpuLoadPatternFormat     = "%sus,%ssy,.*ni,%sid.*"
-	diskLoadPatternFormat    = ".*sda%s%s%s"
-	diskFreePattern          = `.*?\s(\w+)\s.*?(\d+)%\s.*`
-	netstatPattern           = `^(\w+)\s+.*:(\d+)\s+.*\s+(\d+)\s+\d+\s+(\d+)\/(.*)$`
-	ssPattern                = `^([\w\-]+)\s+.*`
+	percentWithComaPattern  = `.*?(\d+),(\d+).*?`
+	percentWithPointPattern = `.*?(\d+)\.(\d+).*?`
+	// loadAveragePatternFormat = ".*average:%s,.*".
+	cpuLoadPatternFormat  = "%sus,%ssy,.*ni,%sid.*"
+	diskLoadPatternFormat = ".*sda%s%s%s"
+	diskFreePattern       = `.*?\s(\w+)\s.*?(\d+)%\s.*`
+	netstatPattern        = `^(\w+)\s+.*:(\d+)\s+.*\s+(\d+)\s+\d+\s+(\d+)\/(.*)$`
+	ssPattern             = `^([\w\-]+)\s+.*`
+
+	// For Windows commands.
+	wmicCmd        = "wmic"
+	loadPercentage = "LoadPercentage"
 )
 
 var (
@@ -41,7 +45,10 @@ var (
 	ssTCPArgs           = []string{"-ta"}
 	ssUDPArgs           = []string{"-ua"}
 
-	loadAverageArgs = []string{"average"}
-	cpuLoadArgs     = []string{"Cpu"}
-	diskLoadArgs    = []string{"sda"}
+	// loadAverageArgs = []string{"average"}.
+	cpuLoadArgs  = []string{"Cpu"}
+	diskLoadArgs = []string{"sda"}
+
+	// For Windows commands.
+	wmicCPUAvgArgs = []string{"cpu", "get", loadPercentage}
 )

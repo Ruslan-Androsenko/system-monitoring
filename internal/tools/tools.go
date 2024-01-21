@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/Ruslan-Androsenko/system-monitoring/api/proto"
 )
@@ -26,6 +27,7 @@ func execute(name string, args []string) ([]byte, error) {
 		return nil, fmt.Errorf("failed to start cmd, error: %w", err)
 	}
 
+	time.Sleep(time.Millisecond * 1200)
 	buffer := make([]byte, bufferSize)
 	bytes, err := pipe.Read(buffer)
 	if err != nil {
@@ -111,30 +113,36 @@ func GetLoadAverage(ctx context.Context, resCh chan<- float64, errCh chan<- erro
 			return
 
 		default:
-			buffer, err := executeWithPipe(topCmd, grepCmd, topArgs, loadAverageArgs)
+			buffer, err := execute(wmicCmd, wmicCPUAvgArgs)
 			if err != nil {
 				errCh <- err
 				return
 			}
 
-			var oneMinute float64
+			var loadValue float64
+			re := regexp.MustCompile(`\r\n`)
+			items := re.Split(string(buffer), -1)
+			_ = items
 
-			pattern := fmt.Sprintf(loadAveragePatternFormat, percentWithComaPattern)
-			re := regexp.MustCompile(pattern)
+			for i := 1; i < len(items); i++ {
+				item := items[i]
 
-			if !re.Match(buffer) {
-				pattern = fmt.Sprintf(loadAveragePatternFormat, percentWithPointPattern)
-				re = regexp.MustCompile(pattern)
+				if item == "" || item == "\r" {
+					continue
+				}
+
+				_, err = fmt.Sscanf(item, "%f", &loadValue)
+				if err != nil {
+					errCh <- fmt.Errorf("failed to parse numbers for load average, error: %w", err)
+					return
+				}
+
+				if loadValue >= 0 {
+					break
+				}
 			}
 
-			number := re.ReplaceAllString(string(buffer), "$1.$2")
-			_, err = fmt.Sscanf(number, "%f", &oneMinute)
-			if err != nil {
-				errCh <- fmt.Errorf("failed to parse numbers for load average, error: %w", err)
-				return
-			}
-
-			resCh <- oneMinute
+			resCh <- loadValue
 		}
 	}
 }
