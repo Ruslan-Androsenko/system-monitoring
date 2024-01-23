@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - development
+      - master
 
 env:
   GO111MODULE: "on"
