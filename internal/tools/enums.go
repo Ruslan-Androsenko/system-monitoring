@@ -9,6 +9,7 @@ func (c contextKey) String() string {
 
 const (
 	bufferSize     = 2048
+	zeroNumber     = 0.0
 	SudoPassCtxKey = contextKey("sudoPassword")
 
 	echoCmd     = "echo"
@@ -20,10 +21,14 @@ const (
 	netstatCmd  = "netstat"
 	ssCmd       = "ss"
 
-	percentPattern  = `.*?(\d{1,3}),(\d{1,3}).*?`
-	diskFreePattern = `.*?\s(\w+)\s.*?(\d+)%\s.*`
-	netstatPattern  = `^(\w+)\s+.*:(\d+)\s+.*\s+(\d+)\s+\d+\s+(\d+)\/(.*)$`
-	ssPattern       = `^([\w\-]+)\s+.*`
+	percentWithComaPattern   = `.*?(\d+),(\d+).*?`
+	percentWithPointPattern  = `.*?(\d+)\.(\d+).*?`
+	loadAveragePatternFormat = ".*average:%s,.*"
+	cpuLoadPatternFormat     = "%sus,%ssy,.*ni,%sid.*"
+	diskLoadPatternFormat    = ".*sda%s%s%s"
+	diskFreePattern          = `.*?\s(\w+)\s.*?(\d+)%\s.*`
+	netstatPattern           = `^(\w+)\s+.*:(\d+)\s+.*\s+(\d+)\s+\d+\s+(\d+)\/(.*)$`
+	ssPattern                = `^([\w\-]+)\s+.*`
 )
 
 var (

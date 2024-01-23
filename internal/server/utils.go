@@ -12,57 +12,62 @@ func fillDataItem(item *proto.MonitoringResponse, chs MetricsChannels, mu Metric
 	var wg sync.WaitGroup
 
 	if metricsConf.LoadAverage {
+		wg.Add(1)
 		go func() {
 			defer mu.loadAverage.Unlock()
 			defer wg.Done()
 
-			wg.Add(1)
+			loadAverageValue := <-chs.loadAverageCh
 			mu.loadAverage.Lock()
-			item.LoadAverage = <-chs.loadAverageCh
+			item.LoadAverage = loadAverageValue
 		}()
 	}
 
 	if metricsConf.CPULoad {
+		wg.Add(1)
 		go func() {
 			defer mu.cpuLoad.Unlock()
 			defer wg.Done()
 
-			wg.Add(1)
+			cpuLoadValue := <-chs.cpuLoadCh
 			mu.cpuLoad.Lock()
-			item.CpuLoad = <-chs.cpuLoadCh
+			item.CpuLoad = cpuLoadValue
 		}()
 	}
 
 	if metricsConf.DiskLoad {
+		wg.Add(1)
 		go func() {
 			defer mu.diskLoad.Unlock()
 			defer wg.Done()
 
-			wg.Add(1)
+			diskLoadValue := <-chs.diskLoadCh
 			mu.diskLoad.Lock()
-			item.DiskLoad = <-chs.diskLoadCh
+			item.DiskLoad = diskLoadValue
 		}()
 	}
 
 	if metricsConf.DiskInfo {
+		wg.Add(1)
 		go func() {
 			defer mu.diskInfo.Unlock()
 			defer wg.Done()
 
-			wg.Add(1)
+			diskInfoValue := <-chs.diskInfoCh
 			mu.diskInfo.Lock()
-			item.DiskInfo = <-chs.diskInfoCh
+			item.DiskInfo = diskInfoValue
 		}()
 	}
 
 	if metricsConf.NetworkStats {
+		wg.Add(1)
 		go func() {
 			defer mu.networkStats.Unlock()
 			defer wg.Done()
 
-			wg.Add(1)
+			networkStatsValue := <-chs.networkStatsCh
 			mu.networkStats.Lock()
-			item.NetworkStats = <-chs.networkStatsCh
+			item.NetworkStats = networkStatsValue
 		}()
 	}
 

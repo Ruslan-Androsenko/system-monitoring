@@ -82,6 +82,25 @@ func executeWithPipe(mainName, secondName string, mainArgs, secondArgs []string)
 	return buffer[:bytes], nil
 }
 
+// Парсинг трёх числовых значений по указанному формату.
+func parsingThreeNumbers(buffer []byte, format string) (float64, float64, float64, error) {
+	var first, second, third float64
+
+	pattern := fmt.Sprintf(format, percentWithComaPattern, percentWithComaPattern, percentWithComaPattern)
+	re := regexp.MustCompile(pattern)
+
+	// Проверяем в каком формате необходимо парсить значения
+	if !re.Match(buffer) {
+		pattern = fmt.Sprintf(format, percentWithPointPattern, percentWithPointPattern, percentWithPointPattern)
+		re = regexp.MustCompile(pattern)
+	}
+
+	numbers := re.ReplaceAllString(string(buffer), "$1.$2, $3.$4, $5.$6")
+	_, err := fmt.Sscanf(numbers, "%f, %f, %f", &first, &second, &third)
+
+	return first, second, third, err
+}
+
 // GetLoadAverage Получить значение для расчета средней нагрузки системы.
 func GetLoadAverage(ctx context.Context, resCh chan<- float64, errCh chan<- error) {
 	defer close(resCh)
@@ -100,11 +119,16 @@ func GetLoadAverage(ctx context.Context, resCh chan<- float64, errCh chan<- erro
 
 			var oneMinute float64
 
-			pattern := fmt.Sprintf(".*average:%s,.*", percentPattern)
+			pattern := fmt.Sprintf(loadAveragePatternFormat, percentWithComaPattern)
 			re := regexp.MustCompile(pattern)
-			numbers := re.ReplaceAllString(string(buffer), "$1.$2")
 
-			_, err = fmt.Sscanf(numbers, "%f", &oneMinute)
+			if !re.Match(buffer) {
+				pattern = fmt.Sprintf(loadAveragePatternFormat, percentWithPointPattern)
+				re = regexp.MustCompile(pattern)
+			}
+
+			number := re.ReplaceAllString(string(buffer), "$1.$2")
+			_, err = fmt.Sscanf(number, "%f", &oneMinute)
 			if err != nil {
 				errCh <- fmt.Errorf("failed to parse numbers for load average, error: %w", err)
 				return
@@ -131,13 +155,7 @@ func GetCPULoad(ctx context.Context, resCh chan<- *proto.CpuLoad, errCh chan<- e
 				return
 			}
 
-			var userMode, systemMode, idle float64
-
-			pattern := fmt.Sprintf("%sus,%ssy,.*ni,%sid.*", percentPattern, percentPattern, percentPattern)
-			re := regexp.MustCompile(pattern)
-			numbers := re.ReplaceAllString(string(buffer), "$1.$2, $3.$4, $5.$6")
-
-			_, err = fmt.Sscanf(numbers, "%f, %f, %f", &userMode, &systemMode, &idle)
+			userMode, systemMode, idle, err := parsingThreeNumbers(buffer, cpuLoadPatternFormat)
 			if err != nil {
 				errCh <- fmt.Errorf("failed to parse numbers for cpu load, error: %w", err)
 				return
@@ -168,15 +186,9 @@ func GetDiskLoad(ctx context.Context, resCh chan<- *proto.DiskLoad, errCh chan<-
 				return
 			}
 
-			var transferPerSecond, readPerSecond, writePerSecond float64
-
-			pattern := fmt.Sprintf(".*sda%s%s%s", percentPattern, percentPattern, percentPattern)
-			re := regexp.MustCompile(pattern)
-			numbers := re.ReplaceAllString(string(buffer), "$1.$2, $3.$4, $5.$6")
-
-			_, err = fmt.Sscanf(numbers, "%f, %f, %f", &transferPerSecond, &readPerSecond, &writePerSecond)
+			transferPerSecond, readPerSecond, writePerSecond, err := parsingThreeNumbers(buffer, diskLoadPatternFormat)
 			if err != nil {
-				errCh <- fmt.Errorf("failed to parse numbers, error: %w", err)
+				errCh <- fmt.Errorf("failed to parse numbers for disk load, error: %w", err)
 				return
 			}
 

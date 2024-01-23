@@ -3,7 +3,7 @@ name: system-monitoring tests
 on:
   push:
     branches:
-      - master
+      - development
 
 env:
   GO111MODULE: "on"
@@ -12,6 +12,9 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
+      - name: Extract branch name
+        run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
@@ -39,8 +42,32 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
+      - name: Test Load Average
+        run: top -b -n1 | grep average
+
+      - name: Test Cpu Load
+        run: top -b -n1 | grep Cpu
+
+      - name: Test Disk Load
+        run: iostat -d -k | grep sda
+
+      - name: Test Disk Info - Used Size
+        run: df -mT
+
+      - name: Test Disk Info - Used Inode
+        run: df -iT
+
+      - name: Test Network Stats - Listener Sockets
+        run: sudo netstat -lntupe
+
+      - name: Test Network Stats - TCP Connections
+        run: ss -ta
+
+      - name: Test Network Stats - UDP Connections
+        run: ss -ua
+
       - name: Unit tests
-        run: go test -race -v -count=100 ./...
+        run: go test -race -v -count=100 -timeout=20m ./internal/...
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
