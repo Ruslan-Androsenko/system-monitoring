@@ -1,0 +1,10 @@
+version: "3"
+
+services:
+  system-monitoring.service:
+    build:
+      context: .
+      dockerfile: build/Dockerfile
+    image: system-monitoring:compose
+    network_mode: "host"
+    container_name: system-monitoring.service

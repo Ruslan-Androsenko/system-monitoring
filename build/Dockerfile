@@ -1,6 +1,10 @@
 # Собираем в гошке
 FROM golang:1.20 as build
 
+RUN apt-get update \
+    && apt-get -y --no-install-recommends install sysstat iproute2 net-tools \
+    && apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /usr/share/doc/*
+
 ENV BIN_FILE /opt/system-monitoring/app
 ENV CODE_DIR /go/src/
 
@@ -21,14 +25,14 @@ RUN CGO_ENABLED=0 go build \
         -o ${BIN_FILE} cmd/*
 
 # На выходе тонкий образ
-FROM alpine:3.9
+#FROM alpine:3.9
 
 LABEL ORGANIZATION="OTUS Online Education"
 LABEL SERVICE="system-monitoring"
 LABEL MAINTAINERS="ruslan.developer.89@gmail.com"
 
-ENV BIN_FILE "/opt/system-monitoring/app"
-COPY --from=build ${BIN_FILE} ${BIN_FILE}
+#ENV BIN_FILE "/opt/system-monitoring/app"
+#COPY --from=build ${BIN_FILE} ${BIN_FILE}
 
 ENV CONFIG_FILE /etc/system-monitoring/config.toml
 COPY ./configs/config.toml ${CONFIG_FILE}

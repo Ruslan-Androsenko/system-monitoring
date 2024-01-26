@@ -26,7 +26,15 @@ build-img:
 		-f build/Dockerfile .
 
 run-img: build-img
-	docker run --rm --name=$(CONTAINER_NAME) $(DOCKER_IMG)
+	docker run --rm --name=$(CONTAINER_NAME) --network="host" $(DOCKER_IMG)
+
+up:
+	docker compose up -d --build
+
+down:
+	docker compose down
+
+restart: down up
 
 version: build
 	$(BIN) version
