@@ -26,7 +26,10 @@ build-img:
 		-f build/Dockerfile .
 
 run-img: build-img
-	docker run --rm --name=$(CONTAINER_NAME) --network="host" $(DOCKER_IMG)
+	docker run --rm \
+		--env="SERVER_PORT=8085" \
+		--name=$(CONTAINER_NAME) \
+		--network="host" $(DOCKER_IMG)
 
 up:
 	docker compose up -d --build
@@ -42,10 +45,13 @@ version: build
 test:
 	go test -race -v -count 100 -timeout=20m ./internal/...
 
+integration-test:
+	go test -race -v -count 100 -timeout=120m ./cmd/...
+
 install-lint-deps:
 	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(LINTER_PATH) v1.55.2
 
 lint: install-lint-deps
 	$(LINTER_BIN) run ./...
 
-.PHONY: build run build-img run-img version test lint
+.PHONY: build run server client build-img run-img up down restart version test integration-test lint

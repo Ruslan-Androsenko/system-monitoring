@@ -34,7 +34,8 @@ LABEL MAINTAINERS="ruslan.developer.89@gmail.com"
 #ENV BIN_FILE "/opt/system-monitoring/app"
 #COPY --from=build ${BIN_FILE} ${BIN_FILE}
 
+ARG SERVER_PORT
 ENV CONFIG_FILE /etc/system-monitoring/config.toml
 COPY ./configs/config.toml ${CONFIG_FILE}
 
-CMD ${BIN_FILE} -config ${CONFIG_FILE}
+CMD ${BIN_FILE} -config ${CONFIG_FILE} -port ${SERVER_PORT}

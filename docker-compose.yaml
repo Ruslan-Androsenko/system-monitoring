@@ -8,3 +8,5 @@ services:
     image: system-monitoring:compose
     network_mode: "host"
     container_name: system-monitoring.service
+    environment:
+      SERVER_PORT: 8075
