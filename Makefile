@@ -1,4 +1,5 @@
-BIN := "./bin/system-monitoring"
+BIN_CLIENT := "./bin/client-monitoring"
+BIN_SERVER := "./bin/system-monitoring"
 CONTAINER_NAME="system-monitoring"
 DOCKER_IMG="system-monitoring:develop"
 LINTER_PATH=/tmp/bin
@@ -7,17 +8,20 @@ LINTER_BIN=/tmp/bin/golangci-lint
 GIT_HASH := $(shell git log --format="%h" -n 1)
 LDFLAGS := -X main.release="develop" -X main.buildDate=$(shell date -u +%Y-%m-%dT%H:%M:%S) -X main.gitHash=$(GIT_HASH)
 
-build:
-	go build -v -o $(BIN) -ldflags "$(LDFLAGS)" ./cmd
+build-client:
+	go build -v -o $(BIN_CLIENT) -ldflags "$(LDFLAGS)" ./cmd/client
 
-run: build
-	$(BIN) -config ./configs/config.toml -port 8090
+build-server:
+	go build -v -o $(BIN_SERVER) -ldflags "$(LDFLAGS)" ./cmd/server
 
-server: build
-	$(BIN) -config ./configs/config-client.toml
+run: build-server
+	$(BIN_SERVER) -config ./configs/config.toml -port 8090
 
-client: build
-	$(BIN) -config ./configs/config-client.toml -messages 100 grpc-client
+client: build-client
+	$(BIN_CLIENT) -config ./configs/config-client.toml -messages 100
+
+server: build-server
+	$(BIN_SERVER) -config ./configs/config-client.toml
 
 build-img:
 	docker build \
@@ -39,14 +43,14 @@ down:
 
 restart: down up
 
-version: build
-	$(BIN) version
+version: build-server
+	$(BIN_SERVER) version
 
 test:
 	go test -race -v -count 100 -timeout=20m ./internal/...
 
 integration-test:
-	go test -race -v -count 100 -timeout=120m ./cmd/...
+	go test -race -v -count 100 -timeout=120m ./cmd/server/...
 
 install-lint-deps:
 	(which golangci-lint > /dev/null) || curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(LINTER_PATH) v1.55.2
@@ -54,4 +58,4 @@ install-lint-deps:
 lint: install-lint-deps
 	$(LINTER_BIN) run ./...
 
-.PHONY: build run server client build-img run-img up down restart version test integration-test lint
+.PHONY: build-client build-server run server client build-img run-img up down restart version test integration-test lint

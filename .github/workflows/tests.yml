@@ -109,8 +109,11 @@ jobs:
       - name: make lint
         run: make lint
 
-      - name: make build
-        run: make build
+      - name: make build-client
+        run: make build-client
+
+      - name: make build-server
+        run: make build-server
 
       - name: make version
         run: make version
