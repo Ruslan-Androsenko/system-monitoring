@@ -9,4 +9,4 @@ services:
     network_mode: "host"
     container_name: system-monitoring.service
     environment:
-      SERVER_PORT: 8075
+      SERVER_PORT: 8070

@@ -15,7 +15,7 @@ build-server:
 	go build -v -o $(BIN_SERVER) -ldflags "$(LDFLAGS)" ./cmd/server
 
 run: build-server
-	$(BIN_SERVER) -config ./configs/config.toml -port 8090
+	$(BIN_SERVER) -config ./configs/config.toml -port 8070
 
 client: build-client
 	$(BIN_CLIENT) -config ./configs/config-client.toml -messages 100
@@ -31,7 +31,7 @@ build-img:
 
 run-img: build-img
 	docker run --rm \
-		--env="SERVER_PORT=8085" \
+		--env="SERVER_PORT=8070" \
 		--name=$(CONTAINER_NAME) \
 		--network="host" $(DOCKER_IMG)
 
