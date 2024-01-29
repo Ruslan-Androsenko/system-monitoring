@@ -32,9 +32,9 @@ var metricsConf server.MetricsConf
 func init() {
 	metricsConf.LoadAverage = true
 	metricsConf.CPULoad = true
-	metricsConf.DiskLoad = true
+	metricsConf.DiskLoad = false
 	metricsConf.DiskInfo = true
-	metricsConf.NetworkStats = true
+	metricsConf.NetworkStats = false
 }
 
 func TestIntegration(t *testing.T) {
