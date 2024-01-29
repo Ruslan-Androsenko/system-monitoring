@@ -20,7 +20,7 @@ const (
 	countMessages = 10
 
 	serverHost = "localhost"
-	serverPort = 8075
+	serverPort = 8070
 
 	timeout      = countMessages*everySeconds + avgSeconds + everySeconds
 	timeoutLimit = time.Second * timeout

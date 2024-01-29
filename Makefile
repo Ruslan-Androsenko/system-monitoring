@@ -33,7 +33,8 @@ run-img: build-img
 	docker run --rm \
 		--env="SERVER_PORT=8070" \
 		--name=$(CONTAINER_NAME) \
-		--network="host" $(DOCKER_IMG)
+		--publish="8070:8070" \
+		$(DOCKER_IMG)
 
 up:
 	docker compose up -d --build

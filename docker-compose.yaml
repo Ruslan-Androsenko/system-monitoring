@@ -6,7 +6,8 @@ services:
       context: .
       dockerfile: build/Dockerfile
     image: system-monitoring:compose
-    network_mode: "host"
     container_name: system-monitoring.service
     environment:
       SERVER_PORT: 8070
+    ports:
+      - "8070:8070"
