@@ -15,12 +15,12 @@ func TestParsingThreeNumbers(t *testing.T) {
 		{
 			name:   "test cpu load with coma number format",
 			format: cpuLoadPatternFormat,
-			buffer: []byte("%Cpu(s):  3,6 us,  4,8 sy,  0,0 ni, 92,7 id,  0,0 wa,  0,0 hi,  0,0 si,  0,0 st"),
+			buffer: []byte("CPU usage: 35,23% user, 45,71% sys, 19,4% idle"),
 		},
 		{
 			name:   "test cpu load with point number format",
 			format: cpuLoadPatternFormat,
-			buffer: []byte("%Cpu(s):  1.6 us,  0.0 sy,  0.0 ni, 98.4 id,  0.0 wa,  0.0 hi,  0.0 si,  0.0 st"),
+			buffer: []byte("CPU usage: 10.53% user, 12.0% sys, 77.45% idle"),
 		},
 
 		{

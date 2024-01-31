@@ -13,5 +13,5 @@ level = "INFO"
 load_average = true
 cpu_load = true
 disk_load = true
-disk_info = false
+disk_info = true
 network_stats = false

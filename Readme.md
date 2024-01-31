@@ -1,7 +1,7 @@
-![workflow](https://github.com/Ruslan-Androsenko/system-monitoring/actions/workflows/tests.yml/badge.svg?event=push&branch=master)
+![workflow](https://github.com/Ruslan-Androsenko/system-monitoring/actions/workflows/tests.yml/badge.svg?event=push&branch=development-mac)
 [![Go Report Card](https://goreportcard.com/badge/github.com/Ruslan-Androsenko/system-monitoring)](https://goreportcard.com/report/github.com/Ruslan-Androsenko/system-monitoring)
 [![Code Climate](https://codeclimate.com/github/Ruslan-Androsenko/system-monitoring/badges/gpa.svg)](https://codeclimate.com/github/Ruslan-Androsenko/system-monitoring)
-[![codecov](https://codecov.io/github/Ruslan-Androsenko/system-monitoring/graph/badge.svg?token=LY9FV3NBGL)](https://codecov.io/github/Ruslan-Androsenko/system-monitoring?branch=master)
+[![codecov](https://codecov.io/github/Ruslan-Androsenko/system-monitoring/graph/badge.svg?token=LY9FV3NBGL)](https://codecov.io/github/Ruslan-Androsenko/system-monitoring?branch=development-mac)
 
 # ТЗ на разработку демона, осуществляющего "Системный мониторинг"
 

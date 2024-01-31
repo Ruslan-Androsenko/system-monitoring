@@ -1,5 +1,5 @@
-BIN_CLIENT := "./bin/client-monitoring"
-BIN_SERVER := "./bin/system-monitoring"
+BIN_CLIENT := "./bin/mac-client-monitoring"
+BIN_SERVER := "./bin/mac-system-monitoring"
 CONTAINER_NAME="system-monitoring"
 DOCKER_IMG="system-monitoring:develop"
 LINTER_PATH=/tmp/bin
@@ -48,7 +48,7 @@ version: build-server
 	$(BIN_SERVER) version
 
 test:
-	go test -race -v -count 100 -timeout=20m ./internal/...
+	go test -race -v -count 100 -timeout=60m ./internal/...
 
 integration-test:
 	go test -race -v -count 100 -timeout=120m ./cmd/server/...

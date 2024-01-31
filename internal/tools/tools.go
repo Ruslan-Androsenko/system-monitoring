@@ -190,16 +190,28 @@ func GetDiskLoad(ctx context.Context, resCh chan<- *proto.DiskLoad, errCh chan<-
 			return
 
 		default:
-			buffer, err := executeWithPipe(iostatCmd, grepCmd, iostatArgs, diskLoadArgs)
+			buffer, err := execute(iostatCmd, iostatArgs)
 			if err != nil {
 				errCh <- err
 				return
 			}
 
-			transferPerSecond, readPerSecond, writePerSecond, err := parsingThreeNumbers(buffer, diskLoadPatternFormat)
-			if err != nil {
-				errCh <- fmt.Errorf("failed to parse numbers for disk load, error: %w", err)
-				return
+			re := regexp.MustCompile("\n")
+			items := re.Split(string(buffer), -1)
+
+			var transferPerSecond, readPerSecond, writePerSecond float64
+
+			if len(items) > 2 {
+				pattern := fmt.Sprintf(diskLoadPatternFormat, percentWithPointPattern,
+					percentIntegerPattern, percentWithPointPattern)
+				re = regexp.MustCompile(pattern)
+
+				numbers := re.ReplaceAllString(items[2], "$1.$2, $3, $4.$5")
+				_, err = fmt.Sscanf(numbers, "%f, %f, %f", &writePerSecond, &transferPerSecond, &readPerSecond)
+				if err != nil {
+					errCh <- fmt.Errorf("failed to parse numbers for disk load, error: %w", err)
+					return
+				}
 			}
 
 			resCh <- &proto.DiskLoad{

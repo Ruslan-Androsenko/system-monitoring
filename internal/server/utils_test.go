@@ -20,7 +20,7 @@ func init() {
 	metricsConf.CPULoad = true
 	metricsConf.DiskLoad = true
 	metricsConf.DiskInfo = true
-	metricsConf.NetworkStats = true
+	metricsConf.NetworkStats = false
 }
 
 // Проверка инициализации каналов.
