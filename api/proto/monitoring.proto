@@ -1,0 +1,56 @@
+syntax = "proto3";
+
+option go_package = "api/proto;proto";
+
+service SystemMonitoring {
+  rpc Metrics(MonitoringRequest) returns (stream MonitoringResponse){}
+}
+
+message MonitoringRequest {
+  uint32 every_seconds = 1;
+  uint32 avg_seconds = 2;
+  string sudo_password = 3;
+}
+
+message MonitoringResponse {
+  double load_average = 1;
+  CpuLoad cpu_load = 2;
+  DiskLoad disk_load = 3;
+  map<string, DiskInfo> disk_info = 4;
+  NetworkStats network_stats = 5;
+}
+
+message CpuLoad {
+  double user_mode = 1;
+  double system_mode = 2;
+  double idle = 3;
+}
+
+message DiskLoad {
+  double transfer_per_second = 1;
+  double read_per_second = 2;
+  double write_per_second = 3;
+}
+
+message DiskInfo {
+  double usage_size = 1;
+  double usage_inode = 2;
+}
+
+message NetworkStats {
+  repeated ListenerSocket listener_socket = 1;
+  CounterConnections counter_connections = 2;
+}
+
+message ListenerSocket {
+  uint32 user = 1;
+  uint32 pid = 2;
+  string command = 3;
+  string protocol = 4;
+  uint32 port = 5;
+}
+
+message CounterConnections {
+  map<string, uint32> tcp = 1;
+  map<string, uint32> udp = 2;
+}

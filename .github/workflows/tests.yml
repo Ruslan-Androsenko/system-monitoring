@@ -3,6 +3,7 @@ name: system-monitoring tests
 on:
   push:
     branches:
+      - development
       - master
 
 env:
@@ -12,6 +13,9 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
+      - name: Extract branch name
+        run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
+
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
@@ -39,8 +43,57 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v3
 
+      - name: Test Load Average
+        run: top -b -n1 | grep average
+
+      - name: Test Cpu Load
+        run: top -b -n1 | grep Cpu
+
+      - name: Test Disk Load
+        run: iostat -d -k | grep sda
+
+      - name: Test Disk Info - Used Size
+        run: df -mT
+
+      - name: Test Disk Info - Used Inode
+        run: df -iT
+
+      - name: Test Network Stats - Listener Sockets
+        run: sudo netstat -lntupe
+
+      - name: Test Network Stats - TCP Connections
+        run: ss -ta
+
+      - name: Test Network Stats - UDP Connections
+        run: ss -ua
+
       - name: Unit tests
-        run: go test -v -count=1 -race -timeout=1m ./...
+        run: go test -race -v -count=100 -timeout=20m ./internal/...
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+  integration_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ^1.20
+
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: make Up service
+        run: make up
+
+      - name: Integration test
+        run: make integration-test
+
+      - name: make Down service
+        run: make down
 
   tests_by_makefile:
     runs-on: ubuntu-latest
@@ -56,8 +109,14 @@ jobs:
       - name: make lint
         run: make lint
 
-      - name: make build
-        run: make build
+      - name: make build-client
+        run: make build-client
+
+      - name: make build-server
+        run: make build-server
+
+      - name: make version
+        run: make version
 
       - name: make test
         run: make test

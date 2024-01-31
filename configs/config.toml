@@ -1,0 +1,17 @@
+[server]
+host = "localhost"
+port = 8080
+override = true
+
+[logger]
+level = "INFO"
+
+# Valid values
+# [FATAL, ERROR, WARN, INFO, DEBUG]
+
+[metrics]
+load_average = true
+cpu_load = true
+disk_load = false
+disk_info = true
+network_stats = true

@@ -13,13 +13,20 @@ linters-settings:
         allow:
           - $gostd
           - github.com/BurntSushi/toml
-          - github.com/Ruslan-Androsenko/system-monitoring/logger
+          - github.com/stretchr/testify/require
+          - github.com/stretchr/testify/suite
+          - github.com/Ruslan-Androsenko/system-monitoring/api/proto
+          - github.com/Ruslan-Androsenko/system-monitoring/internal/config
+          - github.com/Ruslan-Androsenko/system-monitoring/internal/logger
+          - github.com/Ruslan-Androsenko/system-monitoring/internal/server
+          - github.com/Ruslan-Androsenko/system-monitoring/internal/tools
 
 linters:
   disable-all: true
   enable:
     - asciicheck
     - bodyclose
+    - deadcode
     - depguard
     - dogsled
     - dupl
@@ -43,6 +50,7 @@ linters:
     - gosec
     - gosimple
     - govet
+    - ifshort
     - importas
     - ineffassign
     - lll
@@ -58,6 +66,7 @@ linters:
     - rowserrcheck
     - sqlclosecheck
     - staticcheck
+    - structcheck
     - stylecheck
     - tagliatelle
     - thelper
@@ -66,5 +75,6 @@ linters:
     - unconvert
     - unparam
     - unused
+    - varcheck
     - wastedassign
     - whitespace
