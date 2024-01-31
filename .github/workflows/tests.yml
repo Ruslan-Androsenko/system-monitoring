@@ -10,7 +10,7 @@ env:
 
 jobs:
   lint:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Extract branch name
         run: echo "BRANCH=${GITHUB_REF#refs/heads/}" >> $GITHUB_ENV
@@ -53,8 +53,28 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
+  integration_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version: ^1.20
+
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: make Up service
+        run: make up
+
+      - name: Integration test
+        run: make integration-test
+
+      - name: make Down service
+        run: make down
+
   tests_by_makefile:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Set up Go
         uses: actions/setup-go@v3
@@ -67,8 +87,11 @@ jobs:
       - name: make lint
         run: make lint
 
-      - name: make build
-        run: make build
+      - name: make build-client
+        run: make build-client
+
+      - name: make build-server
+        run: make build-server
 
       - name: make version
         run: make version
