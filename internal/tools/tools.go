@@ -16,26 +16,30 @@ import (
 // Выполнить консольную команду без фильтрации данных.
 func execute(name string, args []string) ([]byte, error) {
 	cmd := exec.Command(name, args...)
+	execParams := map[string]interface{}{
+		"name": name,
+		"args": args,
+	}
 
 	pipe, err := cmd.StdoutPipe()
 	if err != nil {
-		return nil, fmt.Errorf("failed to pipe on cmd, error: %w", err)
+		return nil, fmt.Errorf("failed to pipe on cmd: %v, error: %w", execParams, err)
 	}
 	defer pipe.Close()
 
 	if err = cmd.Start(); err != nil {
-		return nil, fmt.Errorf("failed to start cmd, error: %w", err)
+		return nil, fmt.Errorf("failed to start cmd, %v, error: %w", execParams, err)
 	}
 
 	time.Sleep(time.Millisecond * 1200)
 	buffer := make([]byte, bufferSize)
 	bytes, err := pipe.Read(buffer)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read pipe out, error: %w", err)
+		return nil, fmt.Errorf("failed to read pipe out: %v, error: %w", execParams, err)
 	}
 
 	if err = cmd.Wait(); err != nil {
-		return nil, fmt.Errorf("failed to wait cmd, error: %w", err)
+		return nil, fmt.Errorf("failed to wait cmd: %v, error: %w", execParams, err)
 	}
 
 	return buffer[:bytes], nil
@@ -45,40 +49,46 @@ func execute(name string, args []string) ([]byte, error) {
 func executeWithPipe(mainName, secondName string, mainArgs, secondArgs []string) ([]byte, error) {
 	cmdMain := exec.Command(mainName, mainArgs...)
 	cmdSecond := exec.Command(secondName, secondArgs...)
+	execParams := map[string]interface{}{
+		"mainName":   mainName,
+		"mainArgs":   mainArgs,
+		"secondName": secondName,
+		"secondArgs": secondArgs,
+	}
 
 	pipeMain, err := cmdMain.StdoutPipe()
 	if err != nil {
-		return nil, fmt.Errorf("failed to pipe on main cmd, error: %w", err)
+		return nil, fmt.Errorf("failed to pipe on main cmd: %v, error: %w", execParams, err)
 	}
 	defer pipeMain.Close()
 
 	cmdSecond.Stdin = pipeMain
 	pipeSecond, err := cmdSecond.StdoutPipe()
 	if err != nil {
-		return nil, fmt.Errorf("failed to pipe on second cmd, error: %w", err)
+		return nil, fmt.Errorf("failed to pipe on second cmd: %v, error: %w", execParams, err)
 	}
 	defer pipeSecond.Close()
 
 	if err = cmdMain.Start(); err != nil {
-		return nil, fmt.Errorf("failed to start main cmd, error: %w", err)
+		return nil, fmt.Errorf("failed to start main cmd: %v, error: %w", execParams, err)
 	}
 
 	if err = cmdSecond.Start(); err != nil {
-		return nil, fmt.Errorf("failed to start second cmd, error: %w", err)
+		return nil, fmt.Errorf("failed to start second cmd: %v, error: %w", execParams, err)
 	}
 
 	buffer := make([]byte, bufferSize)
 	bytes, err := pipeSecond.Read(buffer)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read second pipe out, error: %w", err)
+		return nil, fmt.Errorf("failed to read second pipe out: %v, error: %w", execParams, err)
 	}
 
 	if err = cmdMain.Wait(); err != nil {
-		return nil, fmt.Errorf("failed to wait main cmd, error: %w", err)
+		return nil, fmt.Errorf("failed to wait main cmd: %v, error: %w", execParams, err)
 	}
 
 	if err = cmdSecond.Wait(); err != nil {
-		return nil, fmt.Errorf("failed to wait second cmd, error: %w", err)
+		return nil, fmt.Errorf("failed to wait second cmd: %v, error: %w", execParams, err)
 	}
 
 	return buffer[:bytes], nil
