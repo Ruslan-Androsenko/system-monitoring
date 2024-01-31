@@ -5,7 +5,6 @@ import (
 	"os/signal"
 	"syscall"
 	"testing"
-	"time"
 
 	"github.com/Ruslan-Androsenko/system-monitoring/api/proto"
 	"github.com/Ruslan-Androsenko/system-monitoring/internal/server"
@@ -21,10 +20,7 @@ const (
 
 	serverHost = "localhost"
 	serverPort = 8070
-
-	timeout      = countMessages*everySeconds + avgSeconds + everySeconds
-	timeoutLimit = time.Second * timeout
-	zeroNumber   = 0.0
+	zeroNumber = 0.0
 )
 
 var metricsConf server.MetricsConf
@@ -38,10 +34,7 @@ func init() {
 }
 
 func TestIntegration(t *testing.T) {
-	ctxTimeout, cancelTimeout := context.WithTimeout(context.Background(), timeoutLimit)
-	defer cancelTimeout()
-
-	ctx, cancel := signal.NotifyContext(ctxTimeout, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
+	ctx, cancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
 	defer cancel()
 
 	config := server.Conf{Host: serverHost, Port: serverPort}
