@@ -32,7 +32,7 @@ var metricsConf server.MetricsConf
 func init() {
 	metricsConf.LoadAverage = true
 	metricsConf.CPULoad = true
-	metricsConf.DiskLoad = false
+	metricsConf.DiskLoad = true
 	metricsConf.DiskInfo = true
 	metricsConf.NetworkStats = false
 }

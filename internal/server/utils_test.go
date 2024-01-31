@@ -18,8 +18,8 @@ const (
 func init() {
 	metricsConf.LoadAverage = true
 	metricsConf.CPULoad = true
-	metricsConf.DiskLoad = false
-	metricsConf.DiskInfo = false
+	metricsConf.DiskLoad = true
+	metricsConf.DiskInfo = true
 	metricsConf.NetworkStats = false
 }
 

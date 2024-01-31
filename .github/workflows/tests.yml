@@ -43,10 +43,13 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Test Load Average
-        run: top -n1 | grep "Load Avg"
+        run: top -l 1 | grep "Load Avg"
 
       - name: Test Cpu Load
-        run: top -n1 | grep "CPU usage"
+        run: top -l 1 | grep "CPU usage"
+
+      - name: Test Disk Load
+        run: iostat -d
 
       - name: Test Disk Info - Used Size
         run: df -m
@@ -63,7 +66,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   integration_tests:
-    runs-on: macos-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Set up Go
         uses: actions/setup-go@v3

@@ -1,5 +1,5 @@
-BIN_CLIENT := "./bin/client-monitoring"
-BIN_SERVER := "./bin/system-monitoring"
+BIN_CLIENT := "./bin/mac-client-monitoring"
+BIN_SERVER := "./bin/mac-system-monitoring"
 CONTAINER_NAME="system-monitoring"
 DOCKER_IMG="system-monitoring:develop"
 LINTER_PATH=/tmp/bin
